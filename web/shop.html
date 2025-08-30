@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sneaker King · Shop</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/css/styles.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom py-3">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="index.html">Sneaker King</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarsExample">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link active" href="shop.html">Shop</a></li>
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+        <li class="nav-item"><a class="nav-link" href="cart.html">Cart</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main class="container my-4">
+  <div class="row">
+    <!-- Sidebar Filters -->
+    <aside class="col-lg-3 mb-4 mb-lg-0">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Filter</h5>
+          <!-- Search Bar -->
+          <div class="mb-3">
+            <input type="text" class="form-control" id="searchInput" placeholder="Search products...">
+          </div>
+          <!-- Categories -->
+          <div class="mb-3">
+            <h6 class="fw-semibold mb-2">Categories</h6>
+            <div id="categoryList" class="d-flex flex-column gap-1"></div>
+          </div>
+          <!-- Price Range -->
+          <div>
+            <h6 class="fw-semibold mb-2">Price</h6>
+            <div class="form-check">
+              <input class="form-check-input price-check" type="checkbox" value="0-100" id="price1">
+              <label class="form-check-label" for="price1">Under $100</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input price-check" type="checkbox" value="100-150" id="price2">
+              <label class="form-check-label" for="price2">$100 - $150</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input price-check" type="checkbox" value="150-10000" id="price3">
+              <label class="form-check-label" for="price3">Above $150</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+    <!-- Products Grid -->
+    <section class="col-lg-9">
+      <div class="row g-4" id="productsRow"></div>
+    </section>
+  </div>
+</main>
+
+<footer class="border-top mt-5 py-4 bg-white">
+  <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between">
+    <span class="text-muted small">© <span id="year"></span> Sneaker King. All rights reserved.</span>
+    <ul class="list-inline mb-0 small">
+      <li class="list-inline-item"><a href="about.html" class="text-muted text-decoration-none">About</a></li>
+      <li class="list-inline-item"><a href="contact.html" class="text-muted text-decoration-none">Contact</a></li>
+      <li class="list-inline-item"><a href="shop.html" class="text-muted text-decoration-none">Shop</a></li>
+      <li class="list-inline-item"><a href="cart.html" class="text-muted text-decoration-none">Cart</a></li>
+    </ul>
+  </div>
+</footer>
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // Get categories from products
+  function getCategories(products) {
+    const cats = new Set();
+    products.forEach(p => {
+      if (p.tag) cats.add(p.tag);
+    });
+    return Array.from(cats);
+  }
+
+  // Render categories
+  function renderCategories(categories) {
+    const catList = document.getElementById('categoryList');
+    catList.innerHTML = '';
+    categories.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-outline-dark btn-sm text-start';
+      btn.textContent = cat;
+      btn.setAttribute('data-cat', cat);
+      catList.appendChild(btn);
+    });
+  }
+
+  // Filter logic
+  function filterProducts(products) {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const selectedCats = Array.from(document.querySelectorAll('#categoryList .active')).map(btn => btn.getAttribute('data-cat'));
+    const selectedPrices = Array.from(document.querySelectorAll('.price-check:checked')).map(cb => cb.value);
+
+    return products.filter(p => {
+      // Search
+      if (search && !p.name.toLowerCase().includes(search)) return false;
+      // Category
+      if (selectedCats.length && !selectedCats.includes(p.tag)) return false;
+      // Price
+      if (selectedPrices.length) {
+        let inRange = false;
+        selectedPrices.forEach(range => {
+          const [min, max] = range.split('-').map(Number);
+          if (p.price >= min && p.price <= max) inRange = true;
+        });
+        if (!inRange) return false;
+      }
+      return true;
+    });
+  }
+
+  // Render products
+  function renderProducts(products) {
+    const row = document.getElementById('productsRow');
+    row.innerHTML = '';
+    if (products.length === 0) {
+      row.innerHTML = '<div class="col-12"><div class="alert alert-info">No products found.</div></div>';
+      return;
+    }
+    products.forEach(product => {
+      const col = document.createElement('div');
+      col.className = 'col-md-6 col-lg-4';
+      col.innerHTML = `
+        <div class="card h-100 shadow-sm">
+          <img src="${product.img}" class="card-img-top" alt="${product.name}">
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">${product.name}</h5>
+            <div class="mb-2 text-muted">${product.tag || ''}</div>
+            <div class="mb-3 fw-bold fs-5">$${product.price}</div>
+            <div class="mt-auto d-grid gap-2">
+              <a href="product.html?id=${product.id}" class="btn btn-outline-dark">View</a>
+              <button class="btn btn-dark add-to-cart-btn" data-id="${product.id}">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      `;
+      row.appendChild(col);
+    });
+
+    // Add to cart event listeners
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const prodId = parseInt(this.getAttribute('data-id'));
+        const product = window.PRODUCTS.find(p => p.id === prodId);
+        if (!product) return;
+
+        let cart = [];
+        try {
+          cart = JSON.parse(localStorage.getItem('cart')) || [];
+        } catch (e) {}
+
+        const idx = cart.findIndex(item => item.name === product.name);
+        if (idx > -1) {
+          cart[idx].qty += 1;
+        } else {
+          cart.push({ ...product, qty: 1 });
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        showCartAlert(`${product.name} added to cart!`);
+      });
+    });
+  }
+
+  // Bootstrap alert for cart
+  function showCartAlert(message) {
+    let alertDiv = document.getElementById('cart-alert');
+    if (!alertDiv) {
+      alertDiv = document.createElement('div');
+      alertDiv.id = 'cart-alert';
+      alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+      alertDiv.style.zIndex = '1050';
+      document.body.appendChild(alertDiv);
+    }
+    alertDiv.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    setTimeout(() => {
+      if (alertDiv) alertDiv.classList.remove('show');
+    }, 2000);
+  }
+
+  // Main render
+  function mainRender() {
+    const products = window.PRODUCTS || [];
+    const categories = getCategories(products);
+    renderCategories(categories);
+    renderProducts(filterProducts(products));
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    mainRender();
+
+    // Search
+    document.getElementById('searchInput').addEventListener('input', mainRender);
+
+    // Category click
+    document.getElementById('categoryList').addEventListener('click', function(e) {
+      if (e.target.tagName === 'BUTTON') {
+        e.target.classList.toggle('active');
+        mainRender();
+      }
+    });
+
+    // Price checkboxes
+    document.querySelectorAll('.price-check').forEach(cb => {
+      cb.addEventListener('change', mainRender);
+    });
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/data.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../../sneaker store"
+		},
+		{
+			"path": "../node_modules"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "assets"
+	}
+}
